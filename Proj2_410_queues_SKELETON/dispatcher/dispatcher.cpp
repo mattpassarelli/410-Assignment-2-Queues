@@ -7,6 +7,7 @@
 
 PCB runningPCB;
 std::queue<PCB> ready_Q, blocked_Q;
+PCB blank;
 
 //small method just to clear the queues, since there is no native one
 void clear(std::queue<PCB> q) {
@@ -68,5 +69,39 @@ int dispatcher::processInterrupt(int interrupt) {
 }
 
 int dispatcher::doTick() {
-	return NO_JOBS;
+	if (runningPCB.io_time != UNINITIALIZED) {
+		if (ready_Q.empty()) {
+			if (blocked_Q.empty()) {
+				return NO_JOBS;
+			}
+			return BLOCKED_JOBS;
+		} else {
+			runningPCB = ready_Q.front();
+			ready_Q.pop();
+			return PCB_MOVED_FROM_READY_TO_RUNNING;
+		}
+	} else {
+		if (runningPCB.cpu_time > 0) {
+			runningPCB.cpu_time -= 1;
+		}
+		if (runningPCB.cpu_time == 0) {
+			//process is done, move on
+			int rtn;
+
+			//check for IO blocking call
+			//1 == yes
+			if (runningPCB.io_time == 1) {
+				runningPCB.io_time = 0;
+				blocked_Q.push(runningPCB);
+				rtn = PCB_ADDED_TO_BLOCKED_QUEUE;
+			} else {
+				runningPCB = blank;
+				rtn = PCB_FINISHED;
+			}
+			return rtn;
+		} else {
+			return PCB_CPUTIME_DECREMENTED;
+		}
+
+	}
 }

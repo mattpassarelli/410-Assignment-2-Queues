@@ -24,7 +24,8 @@ int joblist::doTick(int currentTick) {
 	if (size() <= 0) {
 		return NO_JOBS;
 	} else {
-		if (currentTick < joblist::getNextJob().start_time) {
+		int nextStart = std::uintptr_t(peekNextStartTime);
+		if (currentTick <=nextStart) {
 			return ADD_JOB_TO_DISPATCHER;
 		} else {
 			return WAITING_TO_ADD_JOB_TO_DISPATCHER;
