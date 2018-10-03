@@ -7,7 +7,6 @@
 
 PCB runningPCB;
 std::queue<PCB> ready_Q, blocked_Q;
-PCB blank;
 
 //small method just to clear the queues, since there is no native one
 void clear(std::queue<PCB> q) {
@@ -69,21 +68,38 @@ int dispatcher::processInterrupt(int interrupt) {
 }
 
 int dispatcher::doTick() {
-	if (runningPCB.io_time != UNINITIALIZED) {
+	//if any part of the runningPCB is UNINITIALIZED, don't proceed
+	if (runningPCB.process_number == UNINITIALIZED
+			|| runningPCB.start_time == UNINITIALIZED
+			|| runningPCB.cpu_time == UNINITIALIZED
+			|| runningPCB.io_time == UNINITIALIZED) {
+		//is ready_Q empty?
 		if (ready_Q.empty()) {
+			//is blocked_Q empty
 			if (blocked_Q.empty()) {
 				return NO_JOBS;
 			}
+			//no blocked_Q is not empty, but ready_Q is
 			return BLOCKED_JOBS;
 		} else {
+			//ready_Q is not empty, but runningPCB is still uninitialized
 			runningPCB = ready_Q.front();
 			ready_Q.pop();
 			return PCB_MOVED_FROM_READY_TO_RUNNING;
 		}
 	} else {
+		//we have a runningPCB
+
+		//if cpu_time is above 0, decrement it. Prevents doing 0 - 1 = -1
 		if (runningPCB.cpu_time > 0) {
 			runningPCB.cpu_time -= 1;
+			//if it is now still above zero, return
+			if (runningPCB.cpu_time > 0) {
+				return PCB_CPUTIME_DECREMENTED;
+			}
+			//otherwise, we just move on
 		}
+		//otherwise, if it is 0 to start with, proceed
 		if (runningPCB.cpu_time == 0) {
 			//process is done, move on
 			int rtn;
@@ -95,13 +111,10 @@ int dispatcher::doTick() {
 				blocked_Q.push(runningPCB);
 				rtn = PCB_ADDED_TO_BLOCKED_QUEUE;
 			} else {
-				runningPCB = blank;
+				reinitializePCB();
 				rtn = PCB_FINISHED;
 			}
 			return rtn;
-		} else {
-			return PCB_CPUTIME_DECREMENTED;
 		}
-
 	}
 }

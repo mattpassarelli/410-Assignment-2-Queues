@@ -138,20 +138,26 @@ const int	NUMBER_CYCLES_BETWEEN_IO_INTERRUPTS = 10;
 
 int main() {
 	std::remove(LOG_FILE_1_NO_IO);
+	std::cout <<"TEST 1" << std::endl;
 	runTest(SOURCE_FILE_1_NO_IO, LOG_FILE_1_NO_IO);
 
+	std::cout <<"TEST 2" << std::endl;
 	std::remove(LOG_FILE_1_IO);
 	runTest(SOURCE_FILE_1_IO, LOG_FILE_1_IO);
 
+	std::cout <<"TEST 3" << std::endl;
 	std::remove(LOG_FILE_2_IO);
 	runTest(SOURCE_FILE_2_IO, LOG_FILE_2_IO);
 
+	std::cout <<"TEST 4" << std::endl;
 	std::remove(LOG_FILE_2_noIO);
 	runTest(SOURCE_FILE_2_noIO, LOG_FILE_2_noIO);
 
+	std::cout <<"TEST 5" << std::endl;
 	std::remove(LOG_FILE_2_MIXED);
 	runTest(SOURCE_FILE_2_MIXED, LOG_FILE_2_MIXED);
 
+	std::cout <<"TEST 6" << std::endl;
 	std::remove(LOG_FILE_MANY_MIXED);
 	runTest(SOURCE_FILE_MANY_MIXED, LOG_FILE_MANY_MIXED);
 
