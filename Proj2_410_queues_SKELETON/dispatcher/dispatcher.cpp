@@ -38,21 +38,29 @@ void dispatcher::addJob(PCB &myPCB) {
 int dispatcher::processInterrupt(int interrupt) {
 	if (interrupt == SWITCH_PROCESS) {
 		if (ready_Q.empty()) {
-			return NO_JOBS;
-		} else if (blocked_Q.empty()) {
+			//is blocked_Q empty
+			if (blocked_Q.empty()) {
+				return NO_JOBS;
+			}
+			//no blocked_Q is not empty, but ready_Q is
 			return BLOCKED_JOBS;
 		} else {
 			PCB temp = ready_Q.front();
 			ready_Q.pop();
 
-			ready_Q.push(runningPCB);
+			if (runningPCB.process_number != UNINITIALIZED
+					&& runningPCB.start_time != UNINITIALIZED
+					&& runningPCB.cpu_time != UNINITIALIZED
+					&& runningPCB.io_time != UNINITIALIZED) {
+				ready_Q.push(runningPCB);
+			}
 
 			runningPCB = temp;
 
 			return PCB_SWITCHED_PROCESSES;
 		}
 	} else if (interrupt == IO_COMPLETE) {
-		if (blocked_Q.size() <= 0) {
+		if (blocked_Q.empty()) {
 			return PCB_BLOCKED_QUEUE_EMPTY;
 		} else {
 			while (!blocked_Q.empty()) {
@@ -110,6 +118,7 @@ int dispatcher::doTick() {
 				runningPCB.io_time = 0;
 				blocked_Q.push(runningPCB);
 				rtn = PCB_ADDED_TO_BLOCKED_QUEUE;
+				reinitializePCB();
 			} else {
 				reinitializePCB();
 				rtn = PCB_FINISHED;
