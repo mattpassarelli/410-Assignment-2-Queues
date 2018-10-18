@@ -10,8 +10,7 @@ std::queue<PCB> ready_Q, blocked_Q;
 
 //small method just to clear the queues, since there is no native one
 void clear(std::queue<PCB> q) {
-	std::queue<PCB> empty;
-	std::swap(q, empty);
+	std::queue<PCB>().swap(q);
 }
 
 void reinitializePCB() {
